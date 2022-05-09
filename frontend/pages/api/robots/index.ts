@@ -1,70 +1,52 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Robot } from 'utils/types'
-import { list } from 'utils/data'
 
 type ResponseData = {
   robots: Robot[]
+  message: string
+  statusCode: number
 }
 
-function getAPIPath(path: string){
+
+export function getApiUrl(path: string) {
   return `${process.env.API_URL}${path}`
 }
 
 
-export async function fetchRobotsAPI(path: string) {
-  return await fetch(path, {
-    method: 'GET',
+export async function fetchRobotsAPI(path: string, options = {}): Promise<Robot[]> {
+  const requestUrl = getApiUrl(path)
+  const defaultOption = {
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  })
-    .then(res => res.json())
-    .then(data => {
-      return data;
-    }
-    )
-    .catch(err => {
-      console.log(err);
-    }
-    );
+      'Accept': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*',
+
+    },
+  }
+  const mergedOptions = {
+    ...defaultOption,
+    ...options,
+  }
+
+  const response  = await fetch(requestUrl, mergedOptions)
+  if(!response.ok){
+    throw new Error('Failed to fetch API')
+  }
+  const data = await response.json()
+  return data
 }
 
-export async function getRobots(){
-  return await fetch(getAPIPath('/'), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  })
-    .then(res => res.json())
-    .then(data => {
-      return data;
-    }
-    )
-    .catch(err => {
-      console.log(err);
-      return []
-    }
-    );
-}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-   await fetchRobotsAPI(getAPIPath(`?q=${req.query.q}`))
-    .then(data => {
-      res.status(200).json(
-        data
-      );
-    }
-    )
-    .catch(err => {
-      res.status(500).json({
-        robots: []
-      });
-    });
+   const data = await fetchRobotsAPI(`/`)
+
+   if(data.length === 0 || data === undefined){
+     return res.status(404).json({ message: 'Not found', statusCode: 404, robots: [] })
+   }
+   return res.status(200).json({ message: 'Success', statusCode: 200, robots: data })
 }

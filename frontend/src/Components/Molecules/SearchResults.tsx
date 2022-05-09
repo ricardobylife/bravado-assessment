@@ -1,6 +1,6 @@
 import React from 'react';
 import { Robot } from '../../../utils/types';
-import RobotCard from '../Molecules/RobotCard';
+import RobotCard from './RobotCard';
 import styled from 'styled-components';
 
 type Props = {
