@@ -1,0 +1,60 @@
+version: '3.9'
+volumes:
+  db_data:
+  bundle:
+services:
+  db_app:
+    image: postgres
+    container_name: db_app
+    ports:
+      - '5432'
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'app_db'
+      POSTGRES_HOST_AUTH_METHOD: 'trust'
+    networks:
+      - app-network
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    command: /bin/bash -c 'rm -rf tmp/pids/server.pid && rake db:create && rake db:migrate && bundle exec rails s -p 3100 -b "0.0.0.0"'
+    ports:
+      - '3100:3100'
+    depends_on:
+      - db_app
+    volumes:
+      - ./backend:/app
+      - db_data:/var/lib/postgresql/data
+    env_file: ./backend/.env
+    environment:
+      RAILS_ENV: development
+      DB_HOST: db_app
+      DB_NAME: app_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    networks:
+      - app-network
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    command: yarn dev
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - app-network
+  
+networks:
+  app-network:
+    driver: bridge
