@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import api from '../../services/api';
+import { getRobots } from 'services/robots';
 
 const SearchWrapper = styled.div`
   display: flex;
@@ -35,29 +35,12 @@ function searchBox({ setResults }: { setResults: (results: any) => void }) {
   const [query, setQuery] = React.useState('');
 
   const findRobots = React.useCallback( async (query: string) => {
-    api.get(`http://localhost:3100/search/?query=${query}`)
-    .then((response) => {
-      console.log(response.data)
-      setResults(response.data)
-    })
-    .catch((error) => {
-      setResults([])
-    })
+    getRobots(query);
   },[query])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
     findRobots(e.target.value);
-    if(e.target.value === '') {
-      api.get('http://localhost:3100/robots')
-        .then((response) => {
-          console.log(response.data)
-          setResults(response.data)
-        })
-        .catch((error) => {
-          setResults([])
-        })
-    }
   }
 
 

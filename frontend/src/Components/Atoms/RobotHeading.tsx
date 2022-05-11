@@ -54,6 +54,8 @@ const Email =  styled.p`
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 400;
+  max-width: 145px;
+  overflow: hidden;
   font-size: 14px;
   line-height: 16px;
   color: rgba(0, 0, 0, 0.54);
